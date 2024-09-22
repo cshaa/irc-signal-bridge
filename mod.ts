@@ -1,8 +1,14 @@
 #!/usr/bin/env bun
 import { Client } from "@csha/irc";
-import { delay, yeet } from "@typek/typek";
+import { delay, yeet, retry, type RetryOptions } from "@typek/typek";
 import { args } from "@typek/clap";
 import { receive, send } from "./signal";
+
+const SIGNAL_RETRY: RetryOptions = {
+  count: 5,
+  delay: 500,
+  exponentialBackoff: 5,
+};
 
 const account =
   args.get("--account", "-a") ??
@@ -39,28 +45,40 @@ client.addListener(
     if (to !== channel || from === nick) return;
 
     console.log("Forwarding from IRC:", from, "=>", message);
-    await send(account, {
-      message: `@${from}: ${message}`,
-      groupId: group,
-    });
+    try {
+      await retry(SIGNAL_RETRY, async () =>
+        send(account, {
+          message: `@${from}: ${message}`,
+          groupId: group,
+        })
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 );
 
 console.log("The bridge is set up!");
 
 while (true) {
-  await delay(100);
-  for (const entry of await receive(account)) {
-    if (
-      "dataMessage" in entry.envelope &&
-      entry.envelope.dataMessage.groupInfo?.groupId === group &&
-      entry.envelope.dataMessage.message !== null
-    ) {
-      console.log(
-        "Forwarding from Signal:",
-        entry.envelope.dataMessage.message
-      );
-      client.say(channel, entry.envelope.dataMessage.message);
-    }
+  try {
+    await delay(100);
+    retry(SIGNAL_RETRY, async () => {
+      for (const entry of await receive(account)) {
+        if (
+          "dataMessage" in entry.envelope &&
+          entry.envelope.dataMessage.groupInfo?.groupId === group &&
+          entry.envelope.dataMessage.message !== null
+        ) {
+          console.log(
+            "Forwarding from Signal:",
+            entry.envelope.dataMessage.message
+          );
+          client.say(channel, entry.envelope.dataMessage.message);
+        }
+      }
+    });
+  } catch (e) {
+    console.error(e);
   }
 }
