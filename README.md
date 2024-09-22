@@ -6,3 +6,21 @@ Install [Bun](https://bun.sh/) and run `bun install` in this folder. Then launch
 ```bash
 ./mod.ts --nick "your-bots-nick" --channel "your-irc-channel" --account "your-signal-phone-number" --group-id "your-signal-group-id"
 ```
+
+
+## Docker
+To use with Docker:
+```sh
+docker build -t irc-signal-bridge . # build the container
+
+docker run -it --entrypoint /bin/bash irc-signal-bridge # open a shell in the container
+
+# either link it to an existing account
+signal-cli link # use `signal-cli addDevice --uri ...` on the other device
+# or
+signal-cli register ... # register a new account
+
+exit
+
+docker run irc-signal-bridge ... # run it with the same arguments as ./mod.ts above
+```
