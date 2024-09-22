@@ -1,13 +1,11 @@
-FROM ubuntu:22.04
-RUN apt-get install -y wget openjdk-21-jre
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="$PATH:$HOME/.bun/bin"
+FROM oven/bun:debian
+RUN apt-get update
+RUN apt-get install -y curl
 
-# install signal-cli, see: https://github.com/AsamK/signal-cli?tab=readme-ov-file#install-system-wide-on-linux
-ENV SIGNAL_CLI_VERSION=0.13.6
-RUN wget https://github.com/AsamK/signal-cli/releases/download/v"${SIGNAL_CLI_VERSION}"/signal-cli-"${SIGNAL_CLI_VERSION}".tar.gz
-RUN tar xf signal-cli-"${SIGNAL_CLI_VERSION}".tar.gz -C /opt
-RUN ln -sf /opt/signal-cli-"${SIGNAL_CLI_VERSION}"/bin/signal-cli /usr/local/bin/
+RUN curl -sL -o /etc/apt/trusted.gpg.d/morph027-signal-cli.asc https://packaging.gitlab.io/signal-cli/gpg.key
+RUN echo "deb https://packaging.gitlab.io/signal-cli signalcli main" | sudo tee /etc/apt/sources.list.d/morph027-signal-cli.list
+RUN apt-get update
+RUN apt-get install signal-cli
 
 COPY package.json .npmrc bun.lockb ./
 RUN bun install
