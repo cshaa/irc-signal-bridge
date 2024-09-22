@@ -1,6 +1,7 @@
-FROM oven/bun:debian
-RUN apt-get update
-RUN apt-get install wget -y
+FROM ubuntu:22.04
+RUN apt-get install -y wget openjdk-21-jre
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="$PATH:$HOME/.bun/bin"
 
 # install signal-cli, see: https://github.com/AsamK/signal-cli?tab=readme-ov-file#install-system-wide-on-linux
 ENV SIGNAL_CLI_VERSION=0.13.6
