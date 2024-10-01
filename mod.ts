@@ -2,7 +2,12 @@
 import { Client } from "@csha/irc";
 import { delay, yeet, retry, type RetryOptions } from "@typek/typek";
 import { args } from "@typek/clap";
-import { receive, send } from "./signal";
+import { receive, send } from "./signal.ts";
+import { fromError } from "zod-validation-error";
+import configSchema from "./schema.ts";
+
+// TODO use JSON RPC mode instead of polling
+const SIGNAL_RECEIVE_DELAY = 5_000;
 
 const SIGNAL_RETRY: RetryOptions = {
   count: 5,
@@ -10,50 +15,49 @@ const SIGNAL_RETRY: RetryOptions = {
   exponentialBackoff: 5,
 };
 
-const account =
-  args.get("--account", "-a") ??
-  yeet("Please provide a Signal account via the --access (-a) flag.");
+const configPath =
+  args.get("--config") ?? yeet("Please provide a config file.");
 
-const group =
-  args.get("--group-id", "-g") ??
-  yeet("Please provide a Signal group ID via the --group-id (-g) flag.");
+const { accountNumber, ircServer, ircNick, ircPassword, ircTunnels } =
+  await (async () => {
+    try {
+      return configSchema.parse(await Bun.file(configPath).json());
+    } catch (e) {
+      console.error(
+        `Failed parsing the config file ${configPath}.`,
+        fromError(e).toString()
+      );
+      process.exit(1);
+    }
+  })();
 
-const nick =
-  args.get("--nick", "-n") ??
-  yeet("Please provide an IRC nick via the --nick (-n) flag.");
-
-const channel =
-  args.get("--channel", "-c") ??
-  yeet("Please provide an IRC channel via the --channel (-c) flag.");
-
-const password =
-  args.get("--password", "-p") ??
-  console.info(
-    "You can optionally provide an IRC password via the --password (-p) flag."
-  ) ??
-  undefined;
-
-const client = new Client("irc.libera.chat", nick, {
-  channels: [channel],
+const client = new Client(ircServer, ircNick, {
+  channels: ircTunnels.map(({ ircChannel }) => ircChannel),
   autoRejoin: true,
-  password,
+  password: ircPassword,
 });
 
 client.addListener(
   "message",
   async (from: string, to: string, message: string) => {
-    if (to !== channel || from === nick) return;
+    if (from === ircNick) return;
 
-    console.log("Forwarding from IRC:", from, "=>", message);
-    try {
-      await retry(SIGNAL_RETRY, async () =>
-        send(account, {
-          message: `@${from}: ${message}`,
-          groupId: group,
-        })
+    for (const { ircChannel, groupId } of ircTunnels) {
+      if (to !== ircChannel) continue;
+
+      console.log(
+        `Forwarding from IRC channel ${ircChannel}: ${from} => ${message}`
       );
-    } catch (e) {
-      console.error(e);
+      try {
+        await retry(SIGNAL_RETRY, async () =>
+          send(accountNumber, {
+            message: `@${from}: ${message}`,
+            groupId,
+          })
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 );
@@ -62,19 +66,24 @@ console.log("The bridge is set up!");
 
 while (true) {
   try {
-    await delay(100);
+    await delay(SIGNAL_RECEIVE_DELAY);
     retry(SIGNAL_RETRY, async () => {
-      for (const entry of await receive(account)) {
+      for (const entry of await receive(accountNumber)) {
         if (
-          "dataMessage" in entry.envelope &&
-          entry.envelope.dataMessage.groupInfo?.groupId === group &&
-          entry.envelope.dataMessage.message !== null
-        ) {
+          !("dataMessage" in entry.envelope) ||
+          entry.envelope.dataMessage.message === null
+        )
+          continue;
+
+        for (const { groupId, ircChannel } of ircTunnels) {
+          if (entry.envelope.dataMessage.groupInfo?.groupId !== groupId)
+            continue;
+
           console.log(
-            "Forwarding from Signal:",
+            `Forwarding from Signal to channel ${ircChannel}:`,
             entry.envelope.dataMessage.message
           );
-          client.say(channel, entry.envelope.dataMessage.message);
+          client.say(ircChannel, entry.envelope.dataMessage.message);
         }
       }
     });
