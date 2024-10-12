@@ -28,19 +28,20 @@ Then launch the bridge using `just run config.json`.
 
 ## Docker
 
-To use with Docker:
+To use with Docker, first either set up `signal-cli`...
 
 ```sh
-docker build -t irc-signal-bridge . # build the container
-
-docker run -it --entrypoint /bin/bash irc-signal-bridge # open a shell in the container
-
-# either link it to an existing account
+# link it to an existing account
 signal-cli link # use `signal-cli addDevice --uri ...` on the other device
-# or
-signal-cli register ... # register a new account
-
-exit
-
-docker run irc-signal-bridge ... # run it with the same arguments as ./mod.ts above
+# or register a new account
+signal-cli register ...
 ```
+
+... or copy a `signal-cli` setup from a different machine to your
+`~/.local/share/signal-cli` folder. Then, build & start the container via:
+
+```sh
+just docker-run
+```
+
+You can stop it via `just docker-stop`.

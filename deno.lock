@@ -9,6 +9,7 @@
     "jsr:@typek/clap@0.1": "0.1.0",
     "jsr:@typek/typek@0.9": "0.9.0",
     "jsr:@typek/typek@~0.1.16": "0.1.16",
+    "npm:prettier@*": "3.3.3",
     "npm:zod-validation-error@^3.4.0": "3.4.0_zod@3.23.8",
     "npm:zod@^3.23.8": "3.23.8"
   },
@@ -51,6 +52,9 @@
     }
   },
   "npm": {
+    "prettier@3.3.3": {
+      "integrity": "sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew=="
+    },
     "zod-validation-error@3.4.0_zod@3.23.8": {
       "integrity": "sha512-ZOPR9SVY6Pb2qqO5XHt+MkkTRxGXb4EVtnjc9JpXUOtUB1T9Ru7mZOT361AN3MsetVe7R0a1KZshJDZdgp9miQ==",
       "dependencies": [

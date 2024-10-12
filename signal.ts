@@ -46,13 +46,14 @@ interface ReceiveEntryDataMessage {
   };
 }
 
-export type ReceiveEntry = ReceiveEntryCommon &
-  (
+export type ReceiveEntry =
+  & ReceiveEntryCommon
+  & (
     | ReceiveEntryDataMessage
     | ReceiveEntryReciept
     | {
-        /* unknown variant */
-      }
+      /* unknown variant */
+    }
   );
 
 export interface SendResult {
@@ -65,7 +66,7 @@ export interface SendResult {
       };
       groupId?: string;
       type: "SUCCESS";
-    }
+    },
   ];
 }
 
@@ -96,7 +97,7 @@ export class SignalClient extends EventTarget<SignalClientEvents> {
   constructor(public readonly account: string) {
     super();
     this.command = new JsonRpcCommand(
-      spawn(`signal-cli`, [`-o`, `json`, `-a`, account, `jsonRpc`])
+      spawn(`signal-cli`, [`-o`, `json`, `-a`, account, `jsonRpc`]),
     );
     this.command.addEventListener("notification", ({ method, params }) => {
       if (method !== "receive") return;

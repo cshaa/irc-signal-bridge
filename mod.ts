@@ -13,8 +13,8 @@ const SIGNAL_RETRY: RetryOptions = {
   exponentialBackoff: 5,
 };
 
-const configPath =
-  args.get("--config") ?? yeet("Please provide a config file.");
+const configPath = args.get("--config") ??
+  yeet("Please provide a config file.");
 
 const { accountNumber, ircServer, ircNick, ircPassword, ircTunnels } = (() => {
   try {
@@ -22,7 +22,7 @@ const { accountNumber, ircServer, ircNick, ircPassword, ircTunnels } = (() => {
   } catch (e) {
     console.error(
       `Failed parsing the config file ${configPath}.`,
-      fromError(e).toString()
+      fromError(e).toString(),
     );
     process.exit(1);
   }
@@ -45,20 +45,19 @@ ircClient.addListener(
       if (to !== ircChannel) continue;
 
       console.log(
-        `Forwarding from IRC channel ${ircChannel}: ${from} => ${message}`
+        `Forwarding from IRC channel ${ircChannel}: ${from} => ${message}`,
       );
       try {
         await retry(SIGNAL_RETRY, () =>
           signalClient.send({
             message: `@${from}: ${message}`,
             groupId,
-          })
-        );
+          }));
       } catch (e) {
         console.error(e);
       }
     }
-  }
+  },
 );
 
 signalClient.addEventListener("receive", (entry) => {
@@ -74,7 +73,7 @@ signalClient.addEventListener("receive", (entry) => {
 
     console.log(
       `Forwarding from Signal to channel ${ircChannel}:`,
-      entry.envelope.dataMessage.message
+      entry.envelope.dataMessage.message,
     );
     ircClient.say(ircChannel, entry.envelope.dataMessage.message);
   }

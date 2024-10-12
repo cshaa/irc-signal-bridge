@@ -4,28 +4,28 @@ export class EventTarget<EventMap> {
   } = {};
   addEventListener<Event extends keyof EventMap>(
     event: Event,
-    callback: (request: EventMap[Event]) => void
+    callback: (request: EventMap[Event]) => void,
   ) {
     this.eventListeners[event] ??= new Set();
     this.eventListeners[event].add(callback);
   }
   removeEventListener<Event extends keyof EventMap>(
     event: Event,
-    callback: (request: EventMap[Event]) => void
+    callback: (request: EventMap[Event]) => void,
   ) {
     this.eventListeners[event] ??= new Set();
     this.eventListeners[event].delete(callback);
   }
   dispatchEvent<Event extends keyof EventMap>(
     event: Event,
-    payload: EventMap[Event]
+    payload: EventMap[Event],
   ) {
     this.eventListeners[event] ??= new Set();
     for (const f of this.eventListeners[event]!) f(payload);
   }
   once<Event extends keyof EventMap>(
     event: Event,
-    filter: (payload: EventMap[Event]) => boolean = () => true
+    filter: (payload: EventMap[Event]) => boolean = () => true,
   ): Promise<EventMap[Event]> {
     const self = this;
     return new Promise((res) => {

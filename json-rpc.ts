@@ -19,17 +19,19 @@ export interface JsonRpcRequest extends JsonRpcNotification {
   id: JsonRpcId;
 }
 
-export type JsonRpcResponse = {
-  jsonrpc: "2.0";
-  id: JsonRpcId;
-} & (
-  | {
+export type JsonRpcResponse =
+  & {
+    jsonrpc: "2.0";
+    id: JsonRpcId;
+  }
+  & (
+    | {
       result: unknown;
     }
-  | {
+    | {
       error: JsonRpcError;
     }
-);
+  );
 
 export interface JsonRpcError {
   code: number;
@@ -129,7 +131,7 @@ export class JsonRpcCommand extends EventTarget<JsonRpcCommandEvents> {
 
   async sendNotification(
     method: string,
-    params?: JsonRpcParams
+    params?: JsonRpcParams,
   ): Promise<void> {
     const writer = this.stdin.getWriter();
     await writer.ready;
@@ -146,7 +148,7 @@ export class JsonRpcCommand extends EventTarget<JsonRpcCommandEvents> {
 
   registerMethod(
     name: string,
-    body: (params?: JsonRpcParams) => Promise<unknown> | unknown
+    body: (params?: JsonRpcParams) => Promise<unknown> | unknown,
   ): () => void {
     const callback = async (request: JsonRpcRequest) => {
       if (request.method !== name) return;
@@ -164,12 +166,10 @@ export class JsonRpcCommand extends EventTarget<JsonRpcCommandEvents> {
         await writer.write(JSON.stringify(response) + "\n");
         writer.releaseLock();
       } catch (e) {
-        const error: JsonRpcError = isJsonRpcError(e)
-          ? e
-          : {
-              code: -1,
-              message: `Unexpected internal error: ${e}`,
-            };
+        const error: JsonRpcError = isJsonRpcError(e) ? e : {
+          code: -1,
+          message: `Unexpected internal error: ${e}`,
+        };
 
         const response: JsonRpcResponse = {
           jsonrpc: "2.0",
