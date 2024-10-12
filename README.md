@@ -1,7 +1,13 @@
 # irc-signal-bridge
-Install [signal-cli](https://github.com/AsamK/signal-cli/) and register an account with it. Use a different account than the one you use for your regular Signal activity. Test that you can send and receive messages. Add the bot into a new group, then use `signal-cli listGroups` to get the group ID.
 
-Install [just](https://github.com/casey/just?tab=readme-ov-file#readme) and [Bun](https://bun.sh/). Create the following config file:
+Install [signal-cli](https://github.com/AsamK/signal-cli/) and register an
+account with it. Use a different account than the one you use for your regular
+Signal activity. Test that you can send and receive messages. Add the bot into a
+new group, then use `signal-cli listGroups` to get the group ID.
+
+Install [just](https://github.com/casey/just?tab=readme-ov-file#readme) and
+[Deno](https://deno.com/). Create the following config file:
+
 ```jsonc
 {
   "$schema": "./schema.json",
@@ -17,11 +23,13 @@ Install [just](https://github.com/casey/just?tab=readme-ov-file#readme) and [Bun
   ]
 }
 ```
+
 Then launch the bridge using `just run config.json`.
 
-
 ## Docker
+
 To use with Docker:
+
 ```sh
 docker build -t irc-signal-bridge . # build the container
 

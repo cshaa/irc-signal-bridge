@@ -1,7 +1,8 @@
+# Remove Bun after this is fixed: https://github.com/denoland/deno/issues/26196
 build:
-  bun install
-  bunx json-refs resolve schema.json | bunx json-schema-to-zod | bunx prettier --parser typescript > schema.ts
+  deno install
+  bunx json-refs resolve schema.json | deno run npm:json-schema-to-zod | deno run -A npm:prettier --parser typescript > schema.ts
 
 # start the script
 run CONFIG: build
-  bun ./mod.ts --config {{CONFIG}}
+  deno run -A ./mod.ts --config {{CONFIG}}

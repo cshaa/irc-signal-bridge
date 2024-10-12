@@ -1,0 +1,73 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@csha/irc@0.6": "0.6.0",
+    "jsr:@std/assert@0.226": "0.226.0",
+    "jsr:@std/assert@1.0.2": "1.0.2",
+    "jsr:@std/internal@1": "1.0.4",
+    "jsr:@std/internal@^1.0.1": "1.0.4",
+    "jsr:@typek/clap@0.1": "0.1.0",
+    "jsr:@typek/typek@0.9": "0.9.0",
+    "jsr:@typek/typek@~0.1.16": "0.1.16",
+    "npm:zod-validation-error@^3.4.0": "3.4.0_zod@3.23.8",
+    "npm:zod@^3.23.8": "3.23.8"
+  },
+  "jsr": {
+    "@csha/irc@0.6.0": {
+      "integrity": "8838ae051601e50480a7bf29ea70f5d9a578407dbd7359b67d2a0787910b1e26"
+    },
+    "@std/assert@0.226.0": {
+      "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3",
+      "dependencies": [
+        "jsr:@std/internal@1"
+      ]
+    },
+    "@std/assert@1.0.2": {
+      "integrity": "ccacec332958126deaceb5c63ff8b4eaf9f5ed0eac9feccf124110435e59e49c",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.1"
+      ]
+    },
+    "@std/internal@1.0.4": {
+      "integrity": "62e8e4911527e5e4f307741a795c0b0a9e6958d0b3790716ae71ce085f755422"
+    },
+    "@typek/clap@0.1.0": {
+      "integrity": "617c8c26abfc83f6d4f24fcad1bfa3ab1c2d0647abfc32547fc553ca18080cd0",
+      "dependencies": [
+        "jsr:@typek/typek@~0.1.16"
+      ]
+    },
+    "@typek/typek@0.1.16": {
+      "integrity": "b90f07db42872121ee131077deba9e40db3aa20949fa647ffa9f80a382f7a246",
+      "dependencies": [
+        "jsr:@std/assert@0.226"
+      ]
+    },
+    "@typek/typek@0.9.0": {
+      "integrity": "f5363fea5b40bb116c1d07fbdb03e595d05097c4ea98ea92f3b5e39ff005b370",
+      "dependencies": [
+        "jsr:@std/assert@1.0.2"
+      ]
+    }
+  },
+  "npm": {
+    "zod-validation-error@3.4.0_zod@3.23.8": {
+      "integrity": "sha512-ZOPR9SVY6Pb2qqO5XHt+MkkTRxGXb4EVtnjc9JpXUOtUB1T9Ru7mZOT361AN3MsetVe7R0a1KZshJDZdgp9miQ==",
+      "dependencies": [
+        "zod"
+      ]
+    },
+    "zod@3.23.8": {
+      "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@csha/irc@0.6",
+      "jsr:@typek/clap@0.1",
+      "jsr:@typek/typek@0.9",
+      "npm:zod-validation-error@^3.4.0",
+      "npm:zod@^3.23.8"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
-import { pipe } from "@typek/typek";
-import { $ } from "bun";
+import { spawn } from "node:child_process";
+import { JsonRpcCommand } from "./json-rpc.ts";
+import { EventTarget } from "./event-target.ts";
 
 interface NumberAndId {
   number: string;
@@ -54,14 +55,19 @@ export type ReceiveEntry = ReceiveEntryCommon &
       }
   );
 
-export const receive = async (account: string) => {
-  return pipe(
-    await $`signal-cli -o json -a ${account} receive`.text(),
-    (text) => text.split("\n"),
-    (lines) => lines.filter((line) => line.includes("{")),
-    (lines): ReceiveEntry[] => lines.map((line) => JSON.parse(line))
-  );
-};
+export interface SendResult {
+  timestamp: 1725395016329;
+  results: [
+    {
+      recipientAddress: {
+        uuid: string;
+        number: string;
+      };
+      groupId?: string;
+      type: "SUCCESS";
+    }
+  ];
+}
 
 export interface GroupListing {
   id: string;
@@ -81,35 +87,46 @@ export interface GroupListing {
   groupInviteLink: string | null;
 }
 
-export const listGroups = async (account: string): Promise<GroupListing[]> => {
-  return await $`signal-cli -o json -a ${account} listGroups`.json();
-};
-
-export interface SendResult {
-  timestamp: 1725395016329;
-  results: [
-    {
-      recipientAddress: {
-        uuid: string;
-        number: string;
-      };
-      groupId?: string;
-      type: "SUCCESS";
-    }
-  ];
+export interface SignalClientEvents {
+  receive: ReceiveEntry;
 }
 
-export const send = async (
-  account: string,
-  {
+export class SignalClient extends EventTarget<SignalClientEvents> {
+  public command: JsonRpcCommand;
+  constructor(public readonly account: string) {
+    super();
+    this.command = new JsonRpcCommand(
+      spawn(`signal-cli`, [`-o`, `json`, `-a`, account, `jsonRpc`])
+    );
+    this.command.addEventListener("notification", ({ method, params }) => {
+      if (method !== "receive") return;
+      this.dispatchEvent("receive", params as unknown as ReceiveEntry);
+    });
+  }
+
+  async send({
     message,
     groupId,
     recipient,
-  }: { message: string; groupId?: string; recipient?: string }
-) => {
-  if (groupId !== undefined) {
-    return await $`signal-cli -o json -a ${account} send -m ${message} -g ${groupId}`.json();
-  } else {
-    return await $`signal-cli -o json -a ${account} send -m ${message} ${recipient}`.json();
+  }: {
+    message: string;
+    groupId?: string;
+    recipient?: string;
+  }): Promise<SendResult> {
+    if (groupId !== undefined) {
+      return (await this.command.execMethod("send", {
+        message,
+        groupId,
+      })) as SendResult;
+    } else {
+      return (await this.command.execMethod("send", {
+        message,
+        recipient,
+      })) as SendResult;
+    }
   }
-};
+
+  async listGroups(): Promise<GroupListing[]> {
+    return (await this.command.execMethod("listGroups")) as GroupListing[];
+  }
+}

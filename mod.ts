@@ -1,13 +1,11 @@
-#!/usr/bin/env bun
-import { Client } from "@csha/irc";
-import { delay, yeet, retry, type RetryOptions } from "@typek/typek";
+#!/usr/bin/env -S deno run -A
+import process from "node:process";
+import { Client as IrcClient } from "@csha/irc";
+import { retry, type RetryOptions, yeet } from "@typek/typek";
 import { args } from "@typek/clap";
-import { receive, send } from "./signal.ts";
+import { SignalClient } from "./signal.ts";
 import { fromError } from "zod-validation-error";
 import configSchema from "./schema.ts";
-
-// TODO use JSON RPC mode instead of polling
-const SIGNAL_RECEIVE_DELAY = 5_000;
 
 const SIGNAL_RETRY: RetryOptions = {
   count: 5,
@@ -18,26 +16,27 @@ const SIGNAL_RETRY: RetryOptions = {
 const configPath =
   args.get("--config") ?? yeet("Please provide a config file.");
 
-const { accountNumber, ircServer, ircNick, ircPassword, ircTunnels } =
-  await (async () => {
-    try {
-      return configSchema.parse(await Bun.file(configPath).json());
-    } catch (e) {
-      console.error(
-        `Failed parsing the config file ${configPath}.`,
-        fromError(e).toString()
-      );
-      process.exit(1);
-    }
-  })();
+const { accountNumber, ircServer, ircNick, ircPassword, ircTunnels } = (() => {
+  try {
+    return configSchema.parse(JSON.parse(Deno.readTextFileSync(configPath)));
+  } catch (e) {
+    console.error(
+      `Failed parsing the config file ${configPath}.`,
+      fromError(e).toString()
+    );
+    process.exit(1);
+  }
+})();
 
-const client = new Client(ircServer, ircNick, {
+const ircClient = new IrcClient(ircServer, ircNick, {
   channels: ircTunnels.map(({ ircChannel }) => ircChannel),
   autoRejoin: true,
   password: ircPassword,
 });
 
-client.addListener(
+const signalClient = new SignalClient(accountNumber);
+
+ircClient.addListener(
   "message",
   async (from: string, to: string, message: string) => {
     if (from === ircNick) return;
@@ -49,8 +48,8 @@ client.addListener(
         `Forwarding from IRC channel ${ircChannel}: ${from} => ${message}`
       );
       try {
-        await retry(SIGNAL_RETRY, async () =>
-          send(accountNumber, {
+        await retry(SIGNAL_RETRY, () =>
+          signalClient.send({
             message: `@${from}: ${message}`,
             groupId,
           })
@@ -62,32 +61,23 @@ client.addListener(
   }
 );
 
-console.log("The bridge is set up!");
-
-while (true) {
-  try {
-    await delay(SIGNAL_RECEIVE_DELAY);
-    retry(SIGNAL_RETRY, async () => {
-      for (const entry of await receive(accountNumber)) {
-        if (
-          !("dataMessage" in entry.envelope) ||
-          entry.envelope.dataMessage.message === null
-        )
-          continue;
-
-        for (const { groupId, ircChannel } of ircTunnels) {
-          if (entry.envelope.dataMessage.groupInfo?.groupId !== groupId)
-            continue;
-
-          console.log(
-            `Forwarding from Signal to channel ${ircChannel}:`,
-            entry.envelope.dataMessage.message
-          );
-          client.say(ircChannel, entry.envelope.dataMessage.message);
-        }
-      }
-    });
-  } catch (e) {
-    console.error(e);
+signalClient.addEventListener("receive", (entry) => {
+  if (
+    !("dataMessage" in entry.envelope) ||
+    entry.envelope.dataMessage.message === null
+  ) {
+    return;
   }
-}
+
+  for (const { groupId, ircChannel } of ircTunnels) {
+    if (entry.envelope.dataMessage.groupInfo?.groupId !== groupId) continue;
+
+    console.log(
+      `Forwarding from Signal to channel ${ircChannel}:`,
+      entry.envelope.dataMessage.message
+    );
+    ircClient.say(ircChannel, entry.envelope.dataMessage.message);
+  }
+});
+
+console.log("The bridge is set up!");
