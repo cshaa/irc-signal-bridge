@@ -1,7 +1,7 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@csha/irc@0.6": "0.6.0",
+    "jsr:@csha/irc@~0.6.1": "0.6.1",
     "jsr:@std/assert@0.226": "0.226.0",
     "jsr:@std/assert@1.0.2": "1.0.2",
     "jsr:@std/internal@1": "1.0.4",
@@ -13,8 +13,8 @@
     "npm:zod@^3.23.8": "3.23.8"
   },
   "jsr": {
-    "@csha/irc@0.6.0": {
-      "integrity": "8838ae051601e50480a7bf29ea70f5d9a578407dbd7359b67d2a0787910b1e26"
+    "@csha/irc@0.6.1": {
+      "integrity": "3f696a75b2ec12f23bb208fab3657485d4a741d3cdbc563b448b4be68e51d876"
     },
     "@std/assert@0.226.0": {
       "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3",
@@ -63,7 +63,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@csha/irc@0.6",
+      "jsr:@csha/irc@~0.6.1",
       "jsr:@typek/clap@0.1",
       "jsr:@typek/typek@0.9",
       "npm:zod-validation-error@^3.4.0",

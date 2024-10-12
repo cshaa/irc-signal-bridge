@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@csha/irc": "jsr:@csha/irc@^0.6.0",
+    "@csha/irc": "jsr:@csha/irc@^0.6.1",
     "@typek/clap": "jsr:@typek/clap@^0.1.0",
     "@typek/typek": "jsr:@typek/typek@^0.9.0",
     "zod": "npm:zod@^3.23.8",

@@ -1,4 +1,4 @@
-FROM oven/bun:debian
+FROM denoland/deno:debian
 RUN apt-get update
 RUN apt-get install -y curl
 
@@ -7,8 +7,9 @@ RUN echo "deb https://packaging.gitlab.io/signal-cli signalcli main" | tee /etc/
 RUN apt-get update
 RUN apt-get install signal-cli-native
 
-COPY package.json .npmrc bun.lockb ./
-RUN bun install
+COPY deno.json deno.lock ./
+RUN deno install
 
 COPY . .
-ENTRYPOINT [ "./mod.ts" ]
+ENTRYPOINT [ "./mod.ts", "--config", "/config/config.json" ]
+VOLUME [ "/root/.local/share/signal-cli", "/config" ]
